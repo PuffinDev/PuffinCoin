@@ -1,2 +1,4 @@
 # PuffinCoin
-A decenteralised python cryptocurrency
+A decentralised python cryptocurrency
+Work in progress! 
+Mainnet launch soon.
