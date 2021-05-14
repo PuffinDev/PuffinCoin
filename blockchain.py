@@ -8,6 +8,7 @@ from datetime import datetime
 from Crypto.PublicKey import RSA
 from Crypto.Signature import *
 
+
 class Blockchain():
     def __init__(self):
         self.chain = [self.add_genesis_block()]
@@ -27,7 +28,7 @@ class Blockchain():
         return return_str
 
     def add_genesis_block(self):
-        transactions = [Transaction("me", "you", 10)]
+        transactions = []
         genesis_block = Block(transactions, datetime.now().strftime("%d-%m-%Y %H:%M:%S"), 0)
         genesis_block.prev = ""
         return genesis_block
@@ -162,16 +163,6 @@ class Blockchain():
 
         return blockchain
 
-                
-
-"""
-self.sender = sender
-self.reciever = reciever
-self.amount = amount
-self.time = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-self.hash = self.hash_transaction()
-"""
-
 
 class Block():
     def __init__(self, transactions, time, index):
@@ -203,8 +194,12 @@ Transactions:\n"""
             transaction_hashes += transaction.hash
 
         block_str = self.time + transaction_hashes + self.prev + str(self.nonse)
-        encded_block = hashlib.sha256(json.dumps(block_str, sort_keys=True).encode()).hexdigest()
-        return encded_block
+
+        encoded_block = hashlib.sha256(
+            json.dumps(block_str, sort_keys=True).encode()
+            ).hexdigest()
+
+        return encoded_block
 
     def mine(self, difficulty):
         print("Mining...")
@@ -229,13 +224,14 @@ class Transaction():
         self.hash = self.hash_transaction()
 
     def __str__(self):
-        return f"{self.sender} ==> {self.reciever}  {self.amount}PFC"
+        return f"{self.sender} --> {self.reciever}  {self.amount}PFC"
 
     def hash_transaction(self):
         transaction_str = self.sender + self.reciever + str(self.amount) + self.time
 
         encded_transaction = hashlib.sha256(
-            json.dumps(transaction_str, sort_keys=True).encode()
+            json.dumps(
+                transaction_str, sort_keys=True).encode()
             ).hexdigest()
 
         return encded_transaction
@@ -252,4 +248,3 @@ class Transaction():
 
     def sign(self, key, sender_key):
         self.signiture = "made"
-    
