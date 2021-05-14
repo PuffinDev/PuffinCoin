@@ -111,6 +111,66 @@ class Blockchain():
         print(public_key.decode('ASCII'))
         return key.publickey().export_key().decode('ASCII')
 
+    def to_json(self):
+        blockchain_json = []
+
+        for block in self.chain:
+            block_json = {
+                'index': block.index,
+                'time': block.time,
+                'prev': block.prev,
+                'nonse': block.nonse,
+                'hash': block.hash
+            }
+
+            block_json['transactions'] = []
+
+            for transaction in block.transactions:
+                block_json['transactions'].append({
+                    'sender': transaction.sender,
+                    'reciever': transaction.reciever,
+                    'amount': transaction.amount,
+                    'time': transaction.time,
+                    'hash': transaction.hash
+                })
+            
+            blockchain_json.append(block_json)
+
+        return blockchain_json
+
+    def from_json(self, blockchain_json):
+        blockchain = []
+        for block_json in blockchain_json:
+
+            transactions = []
+            for transaction_json in block_json['transactions']:
+                transaction = Transaction(
+                    transaction_json['sender'],
+                    transaction_json['reciever'],
+                    transaction_json['amount']
+                    )
+
+                transaction.time = transaction_json['time']
+                transaction.hash = transaction_json['hash']
+                transactions.append(transaction)
+            
+            block = Block(transactions, block_json['time'], block_json['index'])
+            block.hash = block_json['hash']
+            block.prev = block_json['prev']
+            block.nonse = block_json['nonse']
+            blockchain.append(block)
+
+        return blockchain
+
+                
+
+"""
+self.sender = sender
+self.reciever = reciever
+self.amount = amount
+self.time = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+self.hash = self.hash_transaction()
+"""
 
 
 class Block():
