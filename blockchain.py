@@ -4,6 +4,7 @@
 import hashlib
 import json
 from datetime import datetime
+import requests
 
 from Crypto.PublicKey import RSA
 from Crypto.Signature import *
@@ -16,6 +17,7 @@ class Blockchain():
         self.difficulty = 4
         self.miner_reward = 60
         self.block_size = 10
+        self.peers = set([])
 
     def __str__(self):
         return_str = ''
@@ -26,6 +28,23 @@ class Blockchain():
                 pass
 
         return return_str
+
+    def update_chain(self):
+        for node in self.peers:
+            own_chain_length = len(self.chain)
+
+            response = requests.get(f'http://{node}/chain')
+
+            if response.status_code == 200:
+                length = len(response.json()['chain'])
+                chain = self.from_json(response.json()['chain'])
+
+                print("Recieved chain of length %s from %s" %(length, node))
+
+                if length > own_chain_length and self.is_valid(chain):
+                    self.chain = chain
+                
+
 
     def add_genesis_block(self):
         transactions = []
@@ -60,12 +79,12 @@ class Blockchain():
             print("Not enough transactions to mine.")
         return True
 
-    def is_valid(self):
-        for i in range(1, len(self.chain)):
-            block = self.chain[i]
-            last_block = self.chain[i-1]
+    def is_valid(self, chain):
+        for i in range(1, len(chain)):
+            block = chain[i]
+            last_block = chain[i-1]
       
-            if block.prev != last_block: 
+            if block.prev != last_block.hash: 
                 print("[ERROR] Block hash is invalid")
                 return False
 
@@ -73,7 +92,7 @@ class Blockchain():
                 print("[ERROR] Block transactions are not valid")
                 return False
 
-            if block.hash != block.calculate_hash(): 
+            if block.hash != block.hash_block(): 
                 print("[ERROR] Block hash is not valid")
                 return False
 
@@ -131,6 +150,7 @@ class Blockchain():
                     'sender': transaction.sender,
                     'reciever': transaction.reciever,
                     'amount': transaction.amount,
+                    'signature': transaction.signature,
                     'time': transaction.time,
                     'hash': transaction.hash
                 })
@@ -153,6 +173,7 @@ class Blockchain():
 
                 transaction.time = transaction_json['time']
                 transaction.hash = transaction_json['hash']
+                transaction.signature = transaction_json['signature']
                 transactions.append(transaction)
             
             block = Block(transactions, block_json['time'], block_json['index'])
@@ -241,10 +262,10 @@ class Transaction():
             return False
         elif self.sender == self.reciever:
             return False
-        elif not self.signiture or len(self.signiture) == 0:
+        elif not self.signature or len(self.signature) == 0:
             return False
         else:
             return True
 
     def sign(self, key, sender_key):
-        self.signiture = "made"
+        self.signature = "made"
