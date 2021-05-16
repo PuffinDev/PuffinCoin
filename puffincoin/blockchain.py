@@ -30,6 +30,12 @@ class Blockchain():
         return return_str
 
     def update_chain(self):
+        """
+        Replaces chain with longest in network
+
+        :return: None
+        """
+
         for node in self.peers:
             own_chain_length = len(self.chain)
 
@@ -47,12 +53,24 @@ class Blockchain():
 
 
     def add_genesis_block(self):
+        """
+        Creates genesis block
+        
+        :return: genesis block
+        """
+
         transactions = []
         genesis_block = Block(transactions, datetime.now().strftime("%d-%m-%Y %H:%M:%S"), 0)
         genesis_block.prev = ""
         return genesis_block
 
     def mine_transactions(self, miner):
+        """
+        Creates new blocks including pending transactions with PoW
+
+        :return: None 
+        """
+
         pt_len = len(self.pending_transactions)
         if pt_len > 1:
             for i in range(0, pt_len, self.block_size):
@@ -77,9 +95,15 @@ class Blockchain():
             self.pending_transactions.append(Transaction("Miner Reward", miner, self.miner_reward))
         else:
             print("Not enough transactions to mine.")
-        return True
 
     def is_valid(self, chain):
+        """
+        Checks if a chain is valid
+
+        :param chain: The chain to be validated
+        :return: None
+        """
+
         for i in range(1, len(chain)):
             block = chain[i]
             last_block = chain[i-1]
@@ -99,6 +123,17 @@ class Blockchain():
         return True
 
     def add_transaction(self, sender, reciever, amount, key, sender_key):
+        """
+        Create new transaction object and append it to pending transactions
+
+        :param sender: Sender of transaction
+        :param reciever: Reciever of the transaction
+        :param amount: Amount of PFC to be transfered
+        :param key: Reciever's public key
+        :param sender_key: Sender's public key
+        :return: None
+        """
+
         encoded_key = key.encode('ASCII')
         encoded_sender_key = sender_key.encode('ASCII')
 
@@ -110,15 +145,25 @@ class Blockchain():
 
         if not transaction.is_valid():
             print("[ERROR] Transaction is not valid")
-            return False
         else:
             self.pending_transactions.append(transaction)
-            return len(self.chain) + 1
 
     def get_last_block(self):
+        """
+        Return the latest block on the blockchain
+
+        :return: Last block
+        """
+
         return self.chain[-1]
 
     def generate_keys(self):
+        """
+        Create public and private RSA keys
+        
+        :return: Public key
+        """
+
         key = RSA.generate(2048)
         private_key = key.export_key()
         with open("privatekey.pem", "wb") as output_file:
@@ -132,6 +177,12 @@ class Blockchain():
         return key.publickey().export_key().decode('ASCII')
 
     def to_json(self):
+        """
+        Convert blockchain to json
+
+        :return: json blockchain
+        """
+
         blockchain_json = []
 
         for block in self.chain:
@@ -160,6 +211,13 @@ class Blockchain():
         return blockchain_json
 
     def from_json(self, blockchain_json):
+        """
+        Convert json to blockchain objects (Block, Transaction)
+
+        :param blockchain_json: json blockchain
+        :return: blockchain
+        """
+
         blockchain = []
         for block_json in blockchain_json:
 
@@ -209,6 +267,11 @@ Transactions:\n"""
         return return_str
 
     def hash_block(self):
+        """
+        Hash data in block
+
+        :return: Hash
+        """
 
         transaction_hashes = ''
         for transaction in self.transactions:
@@ -223,6 +286,13 @@ Transactions:\n"""
         return encoded_block
 
     def mine(self, difficulty):
+        """
+        Create proof of work for block
+
+        :param difficulty: ammount of 0's needed in hash
+        :return: None
+        """
+
         print("Mining...")
         while self.hash[0:difficulty] != '0' * difficulty:
             self.nonse += 1
@@ -248,6 +318,11 @@ class Transaction():
         return f"{self.sender} --> {self.reciever}  {self.amount}PFC"
 
     def hash_transaction(self):
+        """
+        Hash data in transaction
+
+        :return: hash
+        """
         transaction_str = self.sender + self.reciever + str(self.amount) + self.time
 
         encded_transaction = hashlib.sha256(
@@ -258,6 +333,11 @@ class Transaction():
         return encded_transaction
 
     def is_valid(self):
+        """
+        Check if block is valid
+
+        :return: True of False
+        """
         if self.hash != self.hash_transaction():
             return False
         elif self.sender == self.reciever:
@@ -268,4 +348,9 @@ class Transaction():
             return True
 
     def sign(self, key, sender_key):
+        """
+        Sign transaction
+
+        :return: None
+        """
         self.signature = "made"
