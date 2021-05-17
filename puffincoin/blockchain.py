@@ -6,8 +6,8 @@ import json
 from datetime import datetime
 import requests
 
-from Crypto.PublicKey import RSA
-from Crypto.Signature import *
+import nacl.encoding
+import nacl.signing
 
 
 class Blockchain():
@@ -46,7 +46,7 @@ class Blockchain():
         :param node: Address of the node to remove (str)
         :return: None
         """
-        
+
         try:
             self.nodes.remove(node)
         except KeyError:
@@ -145,26 +145,18 @@ class Blockchain():
 
         return True
 
-    def add_transaction(self, sender, reciever, amount, key, sender_key):
+    def add_transaction(self, private_key, sender, reciever, amount):
         """
         Create new transaction object and append it to pending transactions
 
-        :param sender: Sender of transaction
-        :param reciever: Reciever of the transaction
+        :param sender: Sender's public key (wallet address)
+        :param reciever: Reciever's public key (wallet address)
         :param amount: Amount of PFC to be transfered
-        :param key: Reciever's public key
-        :param sender_key: Sender's public key
         :return: None
         """
 
-        encoded_key = key.encode('ASCII')
-        encoded_sender_key = sender_key.encode('ASCII')
-
-        key = RSA.import_key(encoded_key)
-        sender_key = RSA.import_key(encoded_sender_key)
-
         transaction = Transaction(sender, reciever, amount)
-        transaction.sign(key, sender_key)
+        transaction.sign(private_key)
 
         if not transaction.is_valid():
             print("[ERROR] Transaction is not valid")
@@ -184,20 +176,21 @@ class Blockchain():
         """
         Create public and private RSA keys
         
-        :return: Public key
+        :return: Dict containing public and private keys
         """
 
-        key = RSA.generate(2048)
-        private_key = key.export_key()
-        with open("privatekey.pem", "wb") as output_file:
-            output_file.write(private_key)
+        private_key = nacl.signing.SigningKey.generate()
+        public_key = private_key.verify_key
 
-        public_key = key.publickey().export_key()
-        with open("publickey.pem", "wb") as output_file:
-            output_file.write(public_key)
+        keys = {
+            "private_key": private_key.encode(encoder=nacl.encoding.HexEncoder).decode(),
+            "public_key": public_key.encode(encoder=nacl.encoding.HexEncoder).decode(),
+        }
 
-        print(public_key.decode('ASCII'))
-        return key.publickey().export_key().decode('ASCII')
+        with open("wallet.json", "w") as f:
+            json.dump(keys, f)
+
+        return keys
 
     def to_json(self):
         """
@@ -347,7 +340,7 @@ class Transaction():
         :return: hash
         """
 
-        transaction_str = self.sender + self.reciever + str(self.amount) + self.time
+        transaction_str = str(self.sender) + str(self.reciever) + str(self.amount) + self.time
 
         encded_transaction = hashlib.sha256(
             json.dumps(
@@ -358,25 +351,34 @@ class Transaction():
 
     def is_valid(self):
         """
-        Check if block is valid
+        Check if transaction is valid
 
         :return: True of False
         """
 
-        if self.hash != self.hash_transaction():
+        verify_key = nacl.signing.VerifyKey(self.sender, encoder=nacl.encoding.HexEncoder)
+
+        signature_bytes = nacl.encoding.HexEncoder.decode(self.signature)
+
+        try:
+            verify_key.verify(bytes(self.hash, "ASCII"), signature_bytes)
+        except nacl.exceptions.BadSignatureError:
             return False
-        elif self.sender == self.reciever:
+
+        if self.hash != self.hash_transaction():
             return False
         elif not self.signature or len(self.signature) == 0:
             return False
         else:
             return True
 
-    def sign(self, key, sender_key):
+    def sign(self, private_key):
         """
         Sign transaction
 
         :return: None
         """
 
-        self.signature = "made"
+        signing_key = nacl.signing.SigningKey(private_key, encoder=nacl.encoding.HexEncoder)
+        signature = signing_key.sign(bytes(self.hash, 'ASCII')).signature
+        self.signature = nacl.encoding.HexEncoder.encode(signature).decode("ASCII")
