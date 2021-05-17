@@ -29,6 +29,29 @@ class Blockchain():
 
         return return_str
 
+    def add_node(self, node):
+        """
+        Appends a new node to self.peers
+
+        :param node: Address of the node to add (str)
+        :return: None
+        """
+
+        self.nodes.add(node)
+
+    def remove_node(self, node):
+        """
+        Removes an existing node from self.peers
+
+        :param node: Address of the node to remove (str)
+        :return: None
+        """
+        
+        try:
+            self.nodes.remove(node)
+        except KeyError:
+            pass
+
     def update_chain(self):
         """
         Replaces chain with longest in network
@@ -323,6 +346,7 @@ class Transaction():
 
         :return: hash
         """
+
         transaction_str = self.sender + self.reciever + str(self.amount) + self.time
 
         encded_transaction = hashlib.sha256(
@@ -338,6 +362,7 @@ class Transaction():
 
         :return: True of False
         """
+
         if self.hash != self.hash_transaction():
             return False
         elif self.sender == self.reciever:
@@ -353,4 +378,5 @@ class Transaction():
 
         :return: None
         """
+
         self.signature = "made"
