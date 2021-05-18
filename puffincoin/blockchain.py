@@ -137,7 +137,7 @@ class Blockchain():
                 print("[ERROR] Block hash is invalid")
                 return False
 
-            if not block.valid_transactions(): 
+            if not block.valid_transactions(chain): 
                 print("[ERROR] Block transactions are not valid")
                 return False
 
@@ -160,7 +160,7 @@ class Blockchain():
         transaction = Transaction(sender, reciever, amount)
         transaction.sign(private_key)
 
-        if not transaction.is_valid():
+        if not transaction.is_valid(self):
             print("[ERROR] Transaction is not valid")
         else:
             self.pending_transactions.append(transaction)
@@ -335,9 +335,9 @@ Transactions:\n"""
 
         print("Mined block " + str(self.index) + "!")
 
-    def valid_transactions(self):
+    def valid_transactions(self, chain):
         for transaction in self.transactions:
-            if transaction.is_valid():
+            if transaction.is_valid(chain):
                 return True
             return False
 
@@ -368,7 +368,7 @@ class Transaction():
 
         return encded_transaction
 
-    def is_valid(self):
+    def is_valid(self, chain):
         """
         Check if transaction is valid
 
@@ -384,7 +384,9 @@ class Transaction():
         except nacl.exceptions.BadSignatureError:
             return False
 
-        if self.hash != self.hash_transaction():
+        if int(self.amount) > Blockchain.get_balance(chain, self.sender):
+            return False
+        elif self.hash != self.hash_transaction():
             return False
         elif not self.signature or len(self.signature) == 0:
             return False
