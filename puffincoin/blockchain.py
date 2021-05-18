@@ -40,18 +40,19 @@ class Blockchain():
         for node in nodes:
             self.nodes.add(node)
 
-    def remove_node(self, node):
+    def remove_nodes(self, nodes):
         """
-        Removes an existing node from self.peers
+        Removes existing nodes from self.peers
 
-        :param node: Address of the node to remove (str)
+        :param nodes: Addresses of the nodes to remove (list)
         :return: None
         """
 
-        try:
-            self.nodes.remove(node)
-        except KeyError:
-            pass
+        for node in nodes:
+            try:
+                self.nodes.remove(node)
+            except KeyError:
+                pass
 
     def update_chain(self):
         """
