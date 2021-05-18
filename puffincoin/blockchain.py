@@ -29,15 +29,16 @@ class Blockchain():
 
         return return_str
 
-    def add_node(self, node):
+    def add_nodes(self, nodes):
         """
-        Appends a new node to self.peers
+        Appends new nodes to self.peers
 
-        :param node: Address of the node to add (str)
+        :param nodes: Addresses of the nodes to add (list)
         :return: None
         """
 
-        self.nodes.add(node)
+        for node in nodes:
+            self.nodes.add(node)
 
     def remove_node(self, node):
         """
