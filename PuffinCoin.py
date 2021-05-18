@@ -44,15 +44,21 @@ while True:
     opt = input("""
 MENU
 
-w) View wallet
-t) Make transaction
+w) Wallet
+t) Transfer PFC
+m) Mine PFC
+
+d) Display blockchain
+b) Check balance of wallet
+p) Display pending transactions
 
 >> """)
 
     print('\n')
 
     if opt.lower() == 'w': #Display public key (wallet address)
-        print("WALLET ADDRESS: " + keys["public_key"])
+        print("Wallet: " + keys["public_key"])
+        print("Current balance: " + str(blockchain.get_balance(keys["public_key"])) + "PFC")
         input()
     
     if opt.lower() == 't': #Add transaction
@@ -61,3 +67,20 @@ t) Make transaction
         blockchain.add_transaction(keys["private_key"], keys["public_key"], reciever, amt)
         print("Transaction added!")
         input()
+
+    if opt.lower() == 'b': #Check balance
+        print("Current balance: " + str(blockchain.get_balance(keys["public_key"])) + "PFC")
+        input()
+
+    if opt.lower() == 'm': #Mine transactions
+        blockchain.mine_transactions(keys["public_key"])
+        input()
+
+    if opt.lower() == 'd':
+        print(blockchain)
+        input()
+
+    if opt.lower() == 'p':
+        for transaction in blockchain.pending_transactions:
+            print(transaction)
+            input()

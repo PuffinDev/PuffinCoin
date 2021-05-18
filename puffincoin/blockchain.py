@@ -165,6 +165,23 @@ class Blockchain():
         else:
             self.pending_transactions.append(transaction)
 
+    def get_balance(self, wallet):
+        """
+        Gets balance of a wallet
+
+        :param wallet: wallet address (public key)
+        :return: balance
+        """
+
+        bal = 0
+        for block in self.chain:
+            for transaction in block.transactions:
+                if transaction.reciever == wallet:
+                    bal += int(transaction.amount)
+
+        return bal
+
+
     def get_last_block(self):
         """
         Return the latest block on the blockchain
