@@ -69,7 +69,8 @@ p) Display pending transactions
         input()
 
     if opt.lower() == 'b': #Check balance
-        print("Current balance: " + str(blockchain.get_balance(keys["public_key"])) + "PFC")
+        wallet = input("Paste a wallet address: ")
+        print("Balance: " + str(blockchain.get_balance(wallet)) + "PFC")
         input()
 
     if opt.lower() == 'm': #Mine transactions
