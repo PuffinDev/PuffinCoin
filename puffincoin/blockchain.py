@@ -14,8 +14,8 @@ class Blockchain():
     def __init__(self):
         self.chain = [self.add_genesis_block()]
         self.pending_transactions = []
-        self.difficulty = 4
-        self.miner_reward = 60
+        self.difficulty = 5
+        self.miner_reward = 200
         self.block_size = 10
         self.peers = set([])
 
@@ -97,29 +97,25 @@ class Blockchain():
         """
 
         pt_len = len(self.pending_transactions)
-        if pt_len > 1:
-            for i in range(0, pt_len, self.block_size):
-                end = i + self.block_size
-                if i >= pt_len:
-                    end = pt_len
-                transactions = self.pending_transactions[i:end]
+        for i in range(0, pt_len, self.block_size):
+            end = i + self.block_size
+            if i >= pt_len:
+                end = pt_len
+            transactions = self.pending_transactions[i:end]
 
-                block = Block(
-                    transactions,
-                    datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
-                    len(self.chain)
-                    )
+            block = Block(
+                transactions,
+                datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
+                len(self.chain)
+                )
 
-                last_hash = self.get_last_block().hash
-                block.prev = last_hash
-                block.mine(self.difficulty)
-                self.chain.append(block)
-                print("Mined block!")
+            last_hash = self.get_last_block().hash
+            block.prev = last_hash
+            block.mine(self.difficulty)
+            self.chain.append(block)
+            print("Mined block %s!" %(block.index))
 
-            print("Finished mining.")
-            self.pending_transactions.append(Transaction("Miner Reward", miner, self.miner_reward))
-        else:
-            print("Not enough transactions to mine.")
+        self.pending_transactions.append(Transaction("Miner Reward", miner, self.miner_reward))
 
     def is_valid(self, chain):
         """
@@ -328,12 +324,9 @@ Transactions:\n"""
         :return: None
         """
 
-        print("Mining...")
         while self.hash[0:difficulty] != '0' * difficulty:
             self.nonse += 1
             self.hash = self.hash_block()
-
-        print("Mined block " + str(self.index) + "!")
 
     def valid_transactions(self, chain):
         for transaction in self.transactions:

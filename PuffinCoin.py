@@ -74,7 +74,11 @@ p) Display pending transactions
         input()
 
     if opt.lower() == 'm': #Mine transactions
-        blockchain.mine_transactions(keys["public_key"])
+        print("Press CTRL+C to stop")
+        print("Mining now...")
+        while True:
+            try: blockchain.mine_transactions(keys["public_key"])
+            except KeyboardInterrupt: break
         input()
 
     if opt.lower() == 'd':
