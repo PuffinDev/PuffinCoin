@@ -38,7 +38,7 @@ class Blockchain():
         """
 
         for node in nodes:
-            self.nodes.add(node)
+            self.peers.add(node)
 
     def remove_nodes(self, nodes):
         """
@@ -50,7 +50,7 @@ class Blockchain():
 
         for node in nodes:
             try:
-                self.nodes.remove(node)
+                self.peers.remove(node)
             except KeyError:
                 pass
 
@@ -64,15 +64,16 @@ class Blockchain():
         for node in self.peers:
             own_chain_length = len(self.chain)
 
-            response = requests.get(f'http://{node}/chain')
+            try:
+                response = requests.get(f'http://{node}/chain')
+            except:
+                continue
 
             if response.status_code == 200:
                 length = len(response.json()['chain'])
                 chain = self.from_json(response.json()['chain'])
 
-                print("Recieved chain of length %s from %s" %(length, node))
-
-                if length > own_chain_length and self.is_valid(chain):
+                if length > own_chain_length and self.is_valid(chain, self):
                     self.chain = chain
                 
 
@@ -109,37 +110,42 @@ class Blockchain():
                 len(self.chain)
                 )
 
-            last_hash = self.get_last_block().hash
-            block.prev = last_hash
+            block.prev = self.get_last_block().hash
             block.mine(self.difficulty)
             self.chain.append(block)
             print("Mined block %s!" %(block.index))
+            print("Hash: " + block.hash)
+
+            for tx in self.pending_transactions[i:end]: #Remove transactions
+                self.pending_transactions.remove(tx)
 
         self.pending_transactions.append(Transaction("Miner Reward", miner, self.miner_reward))
 
-    def is_valid(self, chain):
+    def is_valid(self, chain, own_chain):
         """
         Checks if a chain is valid
 
         :param chain: The chain to be validated
+        :param own_chain: The local chain
         :return: None
         """
 
         for i in range(1, len(chain)):
             block = chain[i]
             last_block = chain[i-1]
-      
-            if block.prev != last_block.hash: 
-                print("[ERROR] Block hash is invalid")
-                return False
+            
+            if not block.index == 0: #Don't check genesis block
+                if block.prev != last_block.hash: 
+                    #print("[ERROR] Block hash is invalid")
+                    return False
+                
+                if block.hash != block.hash_block():
+                    #print("[ERROR] Block hash is not valid")
+                    return False
 
-            if not block.valid_transactions(chain): 
-                print("[ERROR] Block transactions are not valid")
-                return False
-
-            if block.hash != block.hash_block(): 
-                print("[ERROR] Block hash is not valid")
-                return False
+                if not block.valid_transactions(own_chain): 
+                    #print("[ERROR] Block transactions are not valid")
+                    return False
 
         return True
 
@@ -232,10 +238,14 @@ class Blockchain():
                     'sender': transaction.sender,
                     'reciever': transaction.reciever,
                     'amount': transaction.amount,
-                    'signature': transaction.signature,
                     'time': transaction.time,
                     'hash': transaction.hash
                 })
+
+                try:
+                    block_json['signature'] = transaction.signature
+                except AttributeError:
+                    pass
             
             blockchain_json.append(block_json)
 
@@ -262,7 +272,12 @@ class Blockchain():
 
                 transaction.time = transaction_json['time']
                 transaction.hash = transaction_json['hash']
-                transaction.signature = transaction_json['signature']
+
+                try:
+                    transaction.signature = transaction_json['signature']
+                except:
+                    pass
+
                 transactions.append(transaction)
             
             block = Block(transactions, block_json['time'], block_json['index'])
@@ -296,6 +311,13 @@ Transactions:\n"""
             return_str += transaction.__str__() + "\n"
 
         return return_str
+
+    def block_str(self):
+        transaction_hashes = ''
+        for transaction in self.transactions:
+            transaction_hashes += transaction.hash
+
+        return self.time + transaction_hashes + self.prev + str(self.nonse)
 
     def hash_block(self):
         """
@@ -331,8 +353,10 @@ Transactions:\n"""
     def valid_transactions(self, chain):
         for transaction in self.transactions:
             if transaction.is_valid(chain):
-                return True
-            return False
+                continue
+            else:
+                return False
+        return True
 
 class Transaction():
     def __init__(self, sender, reciever, amount):
@@ -368,20 +392,28 @@ class Transaction():
         :return: True of False
         """
 
-        verify_key = nacl.signing.VerifyKey(self.sender, encoder=nacl.encoding.HexEncoder)
+        if self.sender == 'Miner Reward':
+            if self.amount > chain.miner_reward:
+                print("reward too high")
+                return False
+            
+        else:
+            verify_key = nacl.signing.VerifyKey(self.sender, encoder=nacl.encoding.HexEncoder)
 
-        signature_bytes = nacl.encoding.HexEncoder.decode(self.signature)
+            signature_bytes = nacl.encoding.HexEncoder.decode(self.signature)
 
-        try:
-            verify_key.verify(bytes(self.hash, "ASCII"), signature_bytes)
-        except nacl.exceptions.BadSignatureError:
-            return False
+            try:
+                verify_key.verify(bytes(self.hash, "ASCII"), signature_bytes)
+            except nacl.exceptions.BadSignatureError:
+                print("bad signiture")
+                return False
 
-        if int(self.amount) > Blockchain.get_balance(chain, self.sender):
-            return False
-        elif self.hash != self.hash_transaction():
-            return False
-        elif not self.signature or len(self.signature) == 0:
+            if int(self.amount) > Blockchain.get_balance(chain, self.sender):
+                print("sender does not have enough balance")
+                return False
+        
+        if self.hash != self.hash_transaction():
+            print("invalid hash")
             return False
         else:
             return True

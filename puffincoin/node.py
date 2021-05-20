@@ -1,4 +1,5 @@
 import json
+import time
 
 from flask import Flask
 from tkinter import *
@@ -25,6 +26,7 @@ class Node():
     def update_chain_loop(self):
         while True:
             self.blockchain.update_chain()
+            time.sleep(2)
 
-    def start(self):
-        self.app.run(port=8222)
+    def start(self, port=8222):
+        self.app.run(port=port)
