@@ -75,6 +75,39 @@ class Blockchain():
 
                 if length > own_chain_length and self.is_valid(chain, self):
                     self.chain = chain
+
+            #Recieve pending transactions
+
+            try:
+                response = requests.get(f'http://{node}/transactions')
+            except:
+                continue
+        
+            if response.status_code == 200:
+                try:
+                    transactions = self.pending_transactions_from_json(response.json())
+                except json.JSONDecodeError:
+                    print("Could not decode json:")
+                    print(response.text)
+                    continue
+
+                for tx in transactions:
+                    exists = False
+                    for pending_tx in self.pending_transactions:
+                        if pending_tx.hash == tx.hash:
+                            exists = True
+                            break
+                    
+                    if not exists:
+                        self.pending_transactions.append(tx)
+
+            #Remove mined transactions
+
+            for block in self.chain:
+                for block_tx in block.transactions:
+                    for pending_tx in self.pending_transactions:
+                        if block_tx.hash == pending_tx.hash:
+                            self.pending_transactions.remove(pending_tx)
                 
 
 
@@ -228,24 +261,27 @@ class Blockchain():
                 'time': block.time,
                 'prev': block.prev,
                 'nonse': block.nonse,
-                'hash': block.hash
+                'hash': block.hash,
+                'transactions': []
             }
 
-            block_json['transactions'] = []
-
             for transaction in block.transactions:
-                block_json['transactions'].append({
+                #block_json['transactions'].append(
+                    
+                payload = {
                     'sender': transaction.sender,
                     'reciever': transaction.reciever,
                     'amount': transaction.amount,
                     'time': transaction.time,
                     'hash': transaction.hash
-                })
+                }
 
                 try:
-                    block_json['signature'] = transaction.signature
+                    payload['signature'] = transaction.signature
                 except AttributeError:
                     pass
+
+                block_json['transactions'].append(payload)
             
             blockchain_json.append(block_json)
 
@@ -287,6 +323,62 @@ class Blockchain():
             blockchain.append(block)
 
         return blockchain
+
+    def pending_transactions_json(self):
+        """
+        Converts self.pending_pransactions to json data
+
+        :return: Json transactions
+        """
+
+        transactions = []
+        i = 0
+        for transaction in self.pending_transactions:
+            transactions.append({
+                'sender': transaction.sender,
+                'reciever': transaction.reciever,
+                'amount': transaction.amount,
+                'time': transaction.time,
+                'hash': transaction.hash
+            })
+
+            try:
+                self.transactions[i]['signature'] = transaction.signature
+            except AttributeError:
+                pass
+
+            i += 1
+
+        return transactions
+
+    def pending_transactions_from_json(self, transactions_json):
+        """
+        Converts a list of json transactions to transaction objects
+
+        :param transactions_json: List of transaction dicts
+        :return: Transactions
+        """
+
+        transactions = []
+        for transaction_json in transactions_json:
+            transaction = Transaction(
+                    transaction_json['sender'],
+                    transaction_json['reciever'],
+                    transaction_json['amount']
+                    )
+
+            transaction.time = transaction_json['time']
+            transaction.hash = transaction_json['hash']
+
+            try:
+                transaction.signature = transaction_json['signature']
+            except:
+                pass
+
+            transactions.append(transaction)
+
+        return transactions
+
 
 
 class Block():
@@ -398,18 +490,23 @@ class Transaction():
                 return False
             
         else:
-            verify_key = nacl.signing.VerifyKey(self.sender, encoder=nacl.encoding.HexEncoder)
-
-            signature_bytes = nacl.encoding.HexEncoder.decode(self.signature)
-
             try:
-                verify_key.verify(bytes(self.hash, "ASCII"), signature_bytes)
-            except nacl.exceptions.BadSignatureError:
-                print("bad signiture")
-                return False
+                verify_key = nacl.signing.VerifyKey(self.sender, encoder=nacl.encoding.HexEncoder)
 
-            if int(self.amount) > Blockchain.get_balance(chain, self.sender):
-                print("sender does not have enough balance")
+                signature_bytes = nacl.encoding.HexEncoder.decode(self.signature)
+
+                try:
+                    verify_key.verify(bytes(self.hash, "ASCII"), signature_bytes)
+                except nacl.exceptions.BadSignatureError:
+                    print("bad signiture")
+                    return False
+
+                if int(self.amount) > Blockchain.get_balance(chain, self.sender):
+                    print("sender does not have enough balance")
+                    return False
+
+            except AttributeError:
+                print("no signature")
                 return False
         
         if self.hash != self.hash_transaction():
