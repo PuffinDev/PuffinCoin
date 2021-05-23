@@ -61,6 +61,24 @@ class Blockchain():
         :return: None
         """
 
+        #Get new peers
+        new_peers = []
+        for node in self.peers:
+            try:
+                response = requests.get(f'http://{node}/peers')
+            except:
+                continue
+
+            if response.status_code == 200:
+                for node in response.json():
+                    if not node in self.peers:
+                        new_peers.append(node)
+
+        self.add_nodes(new_peers)
+
+
+
+        #Update blockchain
         for node in self.peers:
             own_chain_length = len(self.chain)
 
@@ -76,8 +94,8 @@ class Blockchain():
                 if length > own_chain_length and self.is_valid(chain, self):
                     self.chain = chain
 
-            #Recieve pending transactions
 
+            #Recieve pending transactions
             try:
                 response = requests.get(f'http://{node}/transactions')
             except:
@@ -101,8 +119,8 @@ class Blockchain():
                     if not exists:
                         self.pending_transactions.append(tx)
 
-            #Remove mined transactions
 
+            #Remove mined transactions
             for block in self.chain:
                 for block_tx in block.transactions:
                     for pending_tx in self.pending_transactions:

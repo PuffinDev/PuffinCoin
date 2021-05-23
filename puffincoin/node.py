@@ -23,6 +23,10 @@ class Node():
 
             return json.dumps(response)
 
+        @self.app.route('/peers', methods=['GET'])
+        def send_peers():
+            return json.dumps(list(self.blockchain.peers))
+
         @self.app.route('/transactions', methods=['GET'])
         def send_transactions():
             return json.dumps(self.blockchain.pending_transactions_json())
