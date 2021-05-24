@@ -10,7 +10,6 @@ class Node():
         self.app = Flask(__name__)
         self.blockchain = blockchain
 
-
         @self.app.route('/', methods=['GET'])
         def home():
             return "PuffinCoin Node"
@@ -36,5 +35,5 @@ class Node():
             self.blockchain.update_chain()
             time.sleep(1)
 
-    def start(self, port=8222):
-        self.app.run(port=port)
+    def start(self, host="0.0.0.0", port=8222):
+        self.app.run(host=host, port=port)

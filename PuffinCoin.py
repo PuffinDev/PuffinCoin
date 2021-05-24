@@ -2,11 +2,28 @@ from threading import Thread
 import logging
 import time
 import json
+import socket
 
 from puffincoin.node import Node
 from puffincoin.blockchain import Blockchain
+from puffincoin.portforward import forwardPort, get_my_ip
 
-blockchain = Blockchain() #Create blockchain
+
+#Forward port
+local_ip = get_my_ip()
+result = forwardPort(8222, 8222, "192.168.1.1", local_ip, False, "TCP", 0, None, False)
+
+if not result:
+    print("[P2P ERROR] Could not forward port with UPnP. Make sure your router has it enebled.")
+    time.sleep(10)
+    exit()
+else:
+    print("[INFO] Forwarded port 3222 with UPnP")
+
+print('\n')
+
+#Create blockchain
+blockchain = Blockchain()
 
 n = Node(blockchain)
 Thread(target=n.start).start() #Start node
