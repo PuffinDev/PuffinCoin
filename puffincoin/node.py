@@ -2,8 +2,6 @@ import json
 import time
 
 from flask import Flask
-from tkinter import *
-
 
 class Node():
     def __init__(self, blockchain):
