@@ -65,9 +65,11 @@ w) Wallet
 t) Transfer PFC
 m) Mine PFC
 
-d) Display blockchain
-b) Check balance of wallet
-p) Display pending transactions
+1| Display blockchain
+2| Check balance of wallet
+3| Display pending transactions
+4| Display connected peers
+5| Add a peer
 
 >> """)
 
@@ -78,16 +80,11 @@ p) Display pending transactions
         print("Current balance: " + str(blockchain.get_balance(keys["public_key"])) + "PFC")
         input()
     
-    if opt.lower() == 't': #Add transaction
+    if opt.lower() == 'tx': #Add transaction
         amt = input("How much PFC would you like to send?: ")
         reciever = input("Paste the wallet address of the recipient: ")
         blockchain.add_transaction(keys["private_key"], keys["public_key"], reciever, amt)
         print("Transaction added!")
-        input()
-
-    if opt.lower() == 'b': #Check balance
-        wallet = input("Paste a wallet address: ")
-        print("Balance: " + str(blockchain.get_balance(wallet)) + "PFC")
         input()
 
     if opt.lower() == 'm': #Mine transactions
@@ -98,11 +95,27 @@ p) Display pending transactions
             except KeyboardInterrupt: break
         input()
 
-    if opt.lower() == 'd':
+    if opt.lower() == '1': #Display blockchain
         print(blockchain)
         input()
 
-    if opt.lower() == 'p':
+    if opt.lower() == '2': #Check balance
+        wallet = input("Paste a wallet address: ")
+        print("Balance: " + str(blockchain.get_balance(wallet)) + "PFC")
+        input()
+
+    if opt.lower() == '3': #Pending transactions
         for transaction in blockchain.pending_transactions:
             print(transaction)
             input()
+    
+    if opt.lower() == '4': #Display connected peers
+        for node in blockchain.peers:
+            print(node)
+            input()
+
+    if opt.lower() == '5': #Add peer
+        addr = input("Type the address of a PuffinCoin node: ")
+        blockchain.add_nodes([addr])
+        print("Added.")
+        input()
