@@ -9,6 +9,18 @@ from puffincoin.blockchain import Blockchain
 from puffincoin.portforward import forwardPort, get_my_ip
 
 
+def save_blockchain(blockchain):
+    while True:
+        try:
+            with open("blockchain.json", "w") as f:
+                payload = blockchain.to_json()
+                json.dump(payload, f)
+        except Exception:
+            pass
+
+        time.sleep(1)
+
+
 #Forward port
 local_ip = get_my_ip()
 result = forwardPort(8222, 8222, "192.168.1.1", local_ip, False, "TCP", 0, None, False)
@@ -28,6 +40,7 @@ blockchain = Blockchain()
 n = Node(blockchain)
 Thread(target=n.start).start() #Start node
 Thread(target=n.update_chain_loop).start()
+Thread(target=save_blockchain, args=(blockchain,)).start()
 
 log = logging.getLogger('werkzeug') #Disable logging
 log.disabled = True
@@ -39,6 +52,13 @@ try: #Read wallet file
     keys = json.loads(f.read())
 except: #If there is no wallet, generate new one
     keys = blockchain.generate_keys()
+
+#Load saved blockchain
+try:
+    data = json.loads(open("blockchain.json", "r").read())
+    blockchain.from_json(data)
+except Exception:
+    pass
 
 
 time.sleep(1)
