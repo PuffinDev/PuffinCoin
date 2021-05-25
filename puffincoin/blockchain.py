@@ -5,6 +5,7 @@ import hashlib
 import json
 from datetime import datetime
 import requests
+import urllib.request
 
 import nacl.encoding
 import nacl.signing
@@ -18,6 +19,7 @@ class Blockchain():
         self.miner_reward = 200
         self.block_size = 10
         self.peers = set([])
+        self.public_ip = self.get_public_ip()
 
     def __str__(self):
         return_str = ''
@@ -39,6 +41,13 @@ class Blockchain():
 
         for node in nodes:
             self.peers.add(node)
+            try: #Register as a node
+                requests.post("http://" + node + "/register", self.public_ip + ":8222")
+            except Exception:
+                pass
+
+    def get_public_ip(self):
+        return requests.get('https://api.ipify.org').text
 
     def remove_nodes(self, nodes):
         """
@@ -72,7 +81,8 @@ class Blockchain():
             if response.status_code == 200:
                 for node in response.json():
                     if not node in self.peers:
-                        new_peers.append(node)
+                        if not self.public_ip in node:
+                            new_peers.append(node)
 
         self.add_nodes(new_peers)
 
@@ -231,6 +241,8 @@ class Blockchain():
             for transaction in block.transactions:
                 if transaction.reciever == wallet:
                     bal += int(transaction.amount)
+                if transaction.sender == wallet:
+                    bal -= int(transaction.amount)
 
         return bal
 
@@ -350,22 +362,21 @@ class Blockchain():
         """
 
         transactions = []
-        i = 0
         for transaction in self.pending_transactions:
-            transactions.append({
+            payload = {
                 'sender': transaction.sender,
                 'reciever': transaction.reciever,
                 'amount': transaction.amount,
                 'time': transaction.time,
                 'hash': transaction.hash
-            })
+            }
 
             try:
-                self.transactions[i]['signature'] = transaction.signature
+                payload['signature'] = transaction.signature
             except AttributeError:
                 pass
 
-            i += 1
+            transactions.append(payload)
 
         return transactions
 

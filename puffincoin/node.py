@@ -1,7 +1,7 @@
 import json
 import time
 
-from flask import Flask
+from flask import Flask, request
 
 class Node():
     def __init__(self, blockchain):
@@ -27,6 +27,12 @@ class Node():
         @self.app.route('/transactions', methods=['GET'])
         def send_transactions():
             return json.dumps(self.blockchain.pending_transactions_json())
+
+        @self.app.route('/register', methods=['POST'])
+        def register_node():
+            addr = request.data.decode()
+            self.blockchain.add_nodes([addr])
+            return "Registered node."
 
     def update_chain_loop(self):
         while True:

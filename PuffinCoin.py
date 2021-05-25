@@ -30,12 +30,17 @@ if not result:
     time.sleep(10)
     exit()
 else:
-    print("[INFO] Forwarded port 3222 with UPnP")
+    print("[INFO] Forwarded port 8222 with UPnP")
 
 print('\n')
 
 #Create blockchain
 blockchain = Blockchain()
+
+f = open("config.json", "r")
+config = json.load(f)
+
+blockchain.add_nodes(config["seed_nodes"]) #Add seed nodes
 
 n = Node(blockchain)
 Thread(target=n.start).start() #Start node
@@ -100,7 +105,7 @@ m) Mine PFC
         print("Current balance: " + str(blockchain.get_balance(keys["public_key"])) + "PFC")
         input()
     
-    if opt.lower() == 'tx': #Add transaction
+    if opt.lower() == 't': #Add transaction
         amt = input("How much PFC would you like to send?: ")
         reciever = input("Paste the wallet address of the recipient: ")
         blockchain.add_transaction(keys["private_key"], keys["public_key"], reciever, amt)
