@@ -8,6 +8,7 @@ from puffincoin.node import Node
 from puffincoin.blockchain import Blockchain
 from puffincoin.portforward import forwardPort, get_my_ip
 
+inputString = ""
 
 def save_blockchain(blockchain):
     while True:
@@ -67,6 +68,8 @@ except: #If there is no wallet, generate new one
 
 
 time.sleep(1)
+
+
 print("""
 =================================================
 ______       __  __ _       _____       _       
@@ -82,65 +85,77 @@ Welcome!
 
 """)
 
-while True:
-    opt = input("""
-MENU
+def menu():
+    exit = False
+    while !exit:
+        opt = input("""
+        MENU
 
-w) Wallet
-t) Transfer PFC
-m) Mine PFC
+        w) Wallet
+        t) Transfer PFC
+        m) Mine PFC
+        e) Exit the Program
 
-1| Display blockchain
-2| Check balance of wallet
-3| Display pending transactions
-4| Display connected peers
-5| Add a peer
+        1| Display blockchain
+        2| Check balance of wallet
+        3| Display pending transactions
+        4| Display connected peers
+        5| Add a peer
 
->> """)
+        >> """)
 
-    print('\n')
+        print('\n')
 
-    if opt.lower() == 'w': #Display public key (wallet address)
-        print("Wallet: " + keys["public_key"])
-        print("Current balance: " + str(blockchain.get_balance(keys["public_key"])) + "PFC")
-        input()
-    
-    if opt.lower() == 't': #Add transaction
-        amt = input("How much PFC would you like to send?: ")
-        reciever = input("Paste the wallet address of the recipient: ")
-        blockchain.add_transaction(keys["private_key"], keys["public_key"], reciever, amt)
-        print("Transaction added!")
-        input()
+        if opt.lower() == 'w': #Display public key (wallet address)
+            print("Wallet: " + keys["public_key"])
+            print("Current balance: " + str(blockchain.get_balance(keys["public_key"])) + "PFC")
+            
+        elif opt.lower() == 't': #Add transaction
+            amt = input("How much PFC would you like to send?: ")
+            reciever = input("Paste the wallet address of the recipient: ")
+            blockchain.add_transaction(keys["private_key"], keys["public_key"], reciever, amt)
+            print("Transaction added!")
 
-    if opt.lower() == 'm': #Mine transactions
-        print("Press CTRL+C to stop")
-        print("Mining now...")
-        while True:
-            try: blockchain.mine_transactions(keys["public_key"])
-            except KeyboardInterrupt: break
-        input()
+        elif opt.lower() == 'm': #Mine transactions
+            print("Press CTRL+C to stop")
+            inputString = str(input("How many blockchains do you want to mine?: "))
+            valid = False
+            while !valid:
+                try:
+                    toMine = int(inputString)
+                    valid = True
+                except ValueError:
+                    print("That is not a valid number.")
+                    inputString = str(input("How many blockchains do you want to mine?: "))
+            print("Mining now...")
+            for i in range(1, toMine, 1):
+                try: blockchain.mine_transactions(keys["public_key"])
+                except KeyboardInterrupt: break
 
-    if opt.lower() == '1': #Display blockchain
-        print(blockchain)
-        input()
+        elif opt.lower() == '1': #Display blockchain
+            print(blockchain)
 
-    if opt.lower() == '2': #Check balance
-        wallet = input("Paste a wallet address: ")
-        print("Balance: " + str(blockchain.get_balance(wallet)) + "PFC")
-        input()
+        elif opt.lower() == '2': #Check balance
+            wallet = input("Paste a wallet address: ")
+            print("Balance: " + str(blockchain.get_balance(wallet)) + "PFC")
 
-    if opt.lower() == '3': #Pending transactions
-        for transaction in blockchain.pending_transactions:
-            print(transaction)
-            input()
-    
-    if opt.lower() == '4': #Display connected peers
-        for node in blockchain.peers:
-            print(node)
-            input()
+        elif opt.lower() == '3': #Pending transactions
+            for transaction in blockchain.pending_transactions:
+                print(transaction)
 
-    if opt.lower() == '5': #Add peer
-        addr = input("Type the address of a PuffinCoin node: ")
-        blockchain.add_nodes([addr])
-        print("Added.")
-        input()
+        elif opt.lower() == '4': #Display connected peers
+            for node in blockchain.peers:
+                print(node)
+
+        elif opt.lower() == '5': #Add peer
+            addr = input("Type the address of a PuffinCoin node: ")
+            blockchain.add_nodes([addr])
+            print("Added.")
+        
+        elif opt.lower() == 'e':
+            exit = true
+            
+        else:
+            print("Invalid input! Please try again.")
+
+menu()
