@@ -16,7 +16,7 @@ class Blockchain():
         self.chain = [self.add_genesis_block()]
         self.pending_transactions = []
         self.difficulty = 5
-        self.miner_reward = 200
+        self.miner_reward = 5
         self.block_size = 10
         self.peers = set([])
         self.public_ip = self.get_public_ip()
