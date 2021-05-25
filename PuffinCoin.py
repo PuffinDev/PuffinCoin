@@ -42,6 +42,13 @@ config = json.load(f)
 
 blockchain.add_nodes(config["seed_nodes"]) #Add seed nodes
 
+#Load saved blockchain
+try:
+    data = json.load(open("blockchain.json", "r"))
+    blockchain.chain = blockchain.from_json(data)
+except Exception:
+    pass
+
 n = Node(blockchain)
 Thread(target=n.start).start() #Start node
 Thread(target=n.update_chain_loop).start()
@@ -57,13 +64,6 @@ try: #Read wallet file
     keys = json.loads(f.read())
 except: #If there is no wallet, generate new one
     keys = blockchain.generate_keys()
-
-#Load saved blockchain
-try:
-    data = json.loads(open("blockchain.json", "r").read())
-    blockchain.from_json(data)
-except Exception:
-    pass
 
 
 time.sleep(1)
