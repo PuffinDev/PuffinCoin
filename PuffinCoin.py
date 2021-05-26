@@ -87,22 +87,22 @@ Welcome!
 
 def menu():
     exit = False
-    while !exit:
+    while not exit:
         opt = input("""
-        MENU
+MENU
 
-        w) Wallet
-        t) Transfer PFC
-        m) Mine PFC
-        e) Exit the Program
+w) Wallet
+t) Transfer PFC
+m) Mine PFC
+e) Exit the Program
 
-        1| Display blockchain
-        2| Check balance of wallet
-        3| Display pending transactions
-        4| Display connected peers
-        5| Add a peer
+1| Display blockchain
+2| Check balance of wallet
+3| Display pending transactions
+4| Display connected peers
+5| Add a peer
 
-        >> """)
+>> """)
 
         print('\n')
 
@@ -118,19 +118,13 @@ def menu():
 
         elif opt.lower() == 'm': #Mine transactions
             print("Press CTRL+C to stop")
-            inputString = str(input("How many blockchains do you want to mine?: "))
-            valid = False
-            while !valid:
-                try:
-                    toMine = int(inputString)
-                    valid = True
-                except ValueError:
-                    print("That is not a valid number.")
-                    inputString = str(input("How many blockchains do you want to mine?: "))
+            
             print("Mining now...")
-            for i in range(1, toMine, 1):
-                try: blockchain.mine_transactions(keys["public_key"])
-                except KeyboardInterrupt: break
+            while True:
+                try:
+                    blockchain.mine_transactions(keys["public_key"])
+                except KeyboardInterrupt:
+                    break
 
         elif opt.lower() == '1': #Display blockchain
             print(blockchain)
@@ -153,7 +147,7 @@ def menu():
             print("Added.")
         
         elif opt.lower() == 'e':
-            exit = true
+            exit = True
             
         else:
             print("Invalid input! Please try again.")
