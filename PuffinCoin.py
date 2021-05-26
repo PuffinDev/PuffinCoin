@@ -153,3 +153,4 @@ e) Exit the Program
             print("Invalid input! Please try again.")
 
 menu()
+quit()
