@@ -12,5 +12,7 @@ Mainnet launch soon.
 ## Usage
 
 Run the following in the command line:
-```pip3 install requirements.txt
-python3 PuffinCoin.py```
+
+pip3 install requirements.txt
+
+python3 PuffinCoin.py
