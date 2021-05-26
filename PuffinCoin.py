@@ -153,3 +153,5 @@ e) Exit the Program
             print("Invalid input! Please try again.")
 
 menu()
+Thread(target=n.exit).exit()
+Thread(target=save_blockchain, args=(blockchain,)).exit()
