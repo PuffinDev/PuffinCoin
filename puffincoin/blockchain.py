@@ -530,14 +530,14 @@ class Transaction():
                     print("bad signiture")
                     return False
 
-                if int(self.amount) > Blockchain.get_balance(chain, self.sender):
-                    print("sender does not have enough balance")
-                    return False
-
             except AttributeError:
                 print("no signature")
                 return False
         
+        if int(self.amount) > chain.get_balance(self.sender):
+            print("sender does not have enough balance")
+            return False
+
         if self.hash != self.hash_transaction():
             print("invalid hash")
             return False
