@@ -520,6 +520,11 @@ class Transaction():
             
         else:
             try:
+                if int(self.amount) > chain.get_balance(self.sender):
+                    print("sender does not have enough balance")
+                    return False
+
+
                 verify_key = nacl.signing.VerifyKey(self.sender, encoder=nacl.encoding.HexEncoder)
 
                 signature_bytes = nacl.encoding.HexEncoder.decode(self.signature)
@@ -533,10 +538,6 @@ class Transaction():
             except AttributeError:
                 print("no signature")
                 return False
-        
-        if int(self.amount) > chain.get_balance(self.sender):
-            print("sender does not have enough balance")
-            return False
 
         if self.hash != self.hash_transaction():
             print("invalid hash")
