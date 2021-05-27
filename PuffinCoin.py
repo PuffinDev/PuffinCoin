@@ -10,6 +10,7 @@ from puffincoin.portforward import forwardPort, get_my_ip
 
 inputString = ""
 
+
 def save_blockchain(blockchain):
     while True:
         try:
@@ -20,6 +21,7 @@ def save_blockchain(blockchain):
             pass
 
         time.sleep(1)
+
 
 
 #Forward port
@@ -35,12 +37,14 @@ else:
 
 print('\n')
 
+
 #Create blockchain
 blockchain = Blockchain()
 
 f = open("config.json", "r")
 config = json.load(f)
 
+print("[INFO] Adding seed node(s)...")
 blockchain.add_nodes(config["seed_nodes"]) #Add seed nodes
 
 #Load saved blockchain
@@ -50,6 +54,8 @@ try:
 except Exception:
     pass
 
+
+print("[INFO] Starting node...")
 n = Node(blockchain)
 Thread(target=n.start).start() #Start node
 Thread(target=n.update_chain_loop).start()
@@ -62,9 +68,23 @@ log.disabled = True
 #Try to open wallet
 f = open("wallet.json", 'r')
 try: #Read wallet file
+    print("[INFO] Loading wallet...")
     keys = json.loads(f.read())
 except: #If there is no wallet, generate new one
+    print("[INFO] Generating wallet...")
     keys = blockchain.generate_keys()
+    print("""
+  ___ __  __ ___  ___  ___ _____ _   _  _ _____ _ 
+ |_ _|  \/  | _ \/ _ \| _ \_   _/_\ | \| |_   _| |
+  | || |\/| |  _/ (_) |   / | |/ _ \| .` | | | |_|
+ |___|_|  |_|_|  \___/|_|_\ |_/_/ \_\_|\_| |_| (_)
+
+  You MUST store the wallet.json file somewere else
+  on your computer or you may loose your wallet!
+  When you download a new version of PuffinCoin,
+  just drag over the file to restore your wallet.                                                                                
+
+    """)
 
 
 time.sleep(1)
@@ -93,11 +113,12 @@ MENU
 
 w) Wallet
 t) Transfer PFC
+h) Transaction history
 m) Mine PFC
 e) Exit the Program
 
 1| Display blockchain
-2| Check balance of wallet
+2| Check balance of a wallet
 3| Display pending transactions
 4| Display connected peers
 5| Add a peer
@@ -125,6 +146,12 @@ e) Exit the Program
                     blockchain.mine_transactions(keys["public_key"])
                 except KeyboardInterrupt:
                     break
+
+        elif opt.lower() == 'h': #Transaction history
+            transactions = blockchain.get_transaction_history(keys["public_key"])
+
+            for transaction in transactions:
+                print(transaction.__str__().replace(keys["public_key"], "You"))
 
         elif opt.lower() == '1': #Display blockchain
             print(blockchain)
