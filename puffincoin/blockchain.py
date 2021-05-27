@@ -31,6 +31,8 @@ class Blockchain():
 
         return return_str
 
+    #NETWORKING
+
     def add_nodes(self, nodes):
         """
         Appends new nodes to self.peers
@@ -136,8 +138,36 @@ class Blockchain():
                     for pending_tx in self.pending_transactions:
                         if block_tx.hash == pending_tx.hash:
                             self.pending_transactions.remove(pending_tx)
-                
 
+    def is_valid(self, chain, own_chain):
+        """
+        Checks if a chain is valid
+
+        :param chain: The chain to be validated
+        :param own_chain: The local chain
+        :return: None
+        """
+
+        for i in range(1, len(chain)):
+            block = chain[i]
+            last_block = chain[i-1]
+            
+            if not block.index == 0: #Don't check genesis block
+                if block.prev != last_block.hash: 
+                    #print("[ERROR] Block hash is invalid")
+                    return False
+                
+                if block.hash != block.hash_block():
+                    #print("[ERROR] Block hash is not valid")
+                    return False
+
+                if not block.valid_transactions(own_chain): 
+                    #print("[ERROR] Block transactions are not valid")
+                    return False
+
+        return True
+                
+    #BLOCKCHAIN UTILS
 
     def add_genesis_block(self):
         """
@@ -150,6 +180,15 @@ class Blockchain():
         genesis_block = Block(transactions, datetime.now().strftime("%d-%m-%Y %H:%M:%S"), 0)
         genesis_block.prev = ""
         return genesis_block
+
+    def get_last_block(self):
+        """
+        Return the latest block on the blockchain
+
+        :return: Last block
+        """
+
+        return self.chain[-1]
 
     def mine_transactions(self, miner):
         """
@@ -182,33 +221,6 @@ class Blockchain():
 
         self.pending_transactions.append(Transaction("Miner Reward", miner, self.miner_reward))
 
-    def is_valid(self, chain, own_chain):
-        """
-        Checks if a chain is valid
-
-        :param chain: The chain to be validated
-        :param own_chain: The local chain
-        :return: None
-        """
-
-        for i in range(1, len(chain)):
-            block = chain[i]
-            last_block = chain[i-1]
-            
-            if not block.index == 0: #Don't check genesis block
-                if block.prev != last_block.hash: 
-                    #print("[ERROR] Block hash is invalid")
-                    return False
-                
-                if block.hash != block.hash_block():
-                    #print("[ERROR] Block hash is not valid")
-                    return False
-
-                if not block.valid_transactions(own_chain): 
-                    #print("[ERROR] Block transactions are not valid")
-                    return False
-
-        return True
 
     def add_transaction(self, private_key, sender, reciever, amount):
         """
@@ -246,15 +258,47 @@ class Blockchain():
 
         return bal
 
-
-    def get_last_block(self):
+    def transaction_index_from_hash(self, _hash):
         """
-        Return the latest block on the blockchain
+        Gets the index of a transaction
 
-        :return: Last block
+        :param _hash: The hash of the transaction
+        :return: index of transaction (int)
+        """
+        
+        i = 0
+        for block in self.chain:
+            for tx in block.transactions:
+                if tx.hash == _hash:
+                    return i
+                else:
+                    i += 1
+        return len(self.chain)
+    
+    def get_balance_before_transaction(self, wallet, tx_index):
+        """
+        Gets the balance of a wallet before a spesific transaction
+
+        :param wallet: The wallet address
+        :param tx_index: The index of the transaction to check before
+        :return: balance (int)
         """
 
-        return self.chain[-1]
+        print("I: " + str(tx_index))
+        i = 0
+        bal = 0
+        for block in self.chain:
+            for transaction in block.transactions:
+                if not i >= tx_index:
+                    if transaction.reciever == wallet:
+                        bal += int(transaction.amount)
+                    if transaction.sender == wallet:
+                        bal -= int(transaction.amount)
+                else:
+                    return bal
+                i += 1
+        return bal
+
 
     def generate_keys(self):
         """
@@ -275,6 +319,8 @@ class Blockchain():
             json.dump(keys, f)
 
         return keys
+
+    #JSON
 
     def to_json(self):
         """
@@ -353,32 +399,6 @@ class Blockchain():
             blockchain.append(block)
 
         return blockchain
-
-    def transaction_index_from_hash(self, _hash):
-        i = 0
-        for block in self.chain:
-            for tx in block.transactions:
-                if tx.hash == _hash:
-                    return i
-                else:
-                    i += 1
-        return len(self.chain)
-    
-    def get_balance_before_transaction(self, wallet, tx_index):
-        print("I: " + str(tx_index))
-        i = 0
-        bal = 0
-        for block in self.chain:
-            for transaction in block.transactions:
-                if not i >= tx_index:
-                    if transaction.reciever == wallet:
-                        bal += int(transaction.amount)
-                    if transaction.sender == wallet:
-                        bal -= int(transaction.amount)
-                else:
-                    return bal
-                i += 1
-        return bal
 
     def pending_transactions_json(self):
         """
