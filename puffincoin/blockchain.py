@@ -354,6 +354,32 @@ class Blockchain():
 
         return blockchain
 
+    def transaction_index_from_hash(self, _hash):
+        i = 0
+        for block in self.chain:
+            for tx in block.transactions:
+                if tx.hash == _hash:
+                    return i
+                else:
+                    i += 1
+        return len(self.chain)
+    
+    def get_balance_before_transaction(self, wallet, tx_index):
+        print("I: " + str(tx_index))
+        i = 0
+        bal = 0
+        for block in self.chain:
+            for transaction in block.transactions:
+                if not i >= tx_index:
+                    if transaction.reciever == wallet:
+                        bal += int(transaction.amount)
+                    if transaction.sender == wallet:
+                        bal -= int(transaction.amount)
+                else:
+                    return bal
+                i += 1
+        return bal
+
     def pending_transactions_json(self):
         """
         Converts self.pending_pransactions to json data
@@ -472,7 +498,9 @@ Transactions:\n"""
             self.hash = self.hash_block()
 
     def valid_transactions(self, chain):
+        i = 0
         for transaction in self.transactions:
+            i += 1
             if transaction.is_valid(chain):
                 continue
             else:
@@ -520,7 +548,8 @@ class Transaction():
             
         else:
             try:
-                if int(self.amount) > chain.get_balance(self.sender):
+                tx_index = chain.transaction_index_from_hash(self.hash)
+                if int(self.amount) > chain.get_balance_before_transaction(self.sender, tx_index):
                     print("sender does not have enough balance")
                     return False
 
