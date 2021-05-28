@@ -12,6 +12,11 @@ class Node():
         def home():
             return "PuffinCoin Node"
 
+        @self.app.route('/version', methods=['GET'])
+        def ver():
+            return self.blockchain.VER
+        
+
         @self.app.route('/chain', methods=['GET'])
         def send_chain():
             response = {

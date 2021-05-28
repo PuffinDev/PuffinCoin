@@ -35,8 +35,6 @@ if not result:
 else:
     print("[INFO] Forwarded port 8222 with UPnP")
 
-print('\n')
-
 
 #Create blockchain
 blockchain = Blockchain()
@@ -64,6 +62,7 @@ Thread(target=save_blockchain, args=(blockchain,)).start()
 log = logging.getLogger('werkzeug') #Disable logging
 log.disabled = True
 
+print('\n')
 
 #Try to open wallet
 f = open("wallet.json", 'r')
@@ -82,7 +81,7 @@ except: #If there is no wallet, generate new one
   You MUST store the wallet.json file somewere else
   on your computer or you may loose your wallet!
   When you download a new version of PuffinCoin,
-  just drag over the file to restore your wallet.                                                                                
+  just drag over the file to restore your wallet.                                                                           
 
     """)
 
@@ -122,6 +121,7 @@ e) Exit the Program
 3| Display pending transactions
 4| Display connected peers
 5| Add a peer
+6| PuffinCoin version
 
 >> """)
 
@@ -172,6 +172,9 @@ e) Exit the Program
             addr = input("Type the address of a PuffinCoin node: ")
             blockchain.add_nodes([addr])
             print("Added.")
+
+        elif opt.lower() == '6': #Version
+            print(blockchain.VER)
         
         elif opt.lower() == 'e':
             exit = True

@@ -4,15 +4,17 @@
 import hashlib
 import json
 from datetime import datetime
+import time
 import requests
 import urllib.request
 
 import nacl.encoding
 import nacl.signing
 
-
 class Blockchain():
     def __init__(self):
+        self.VER = "0.1.2"
+
         self.chain = [self.add_genesis_block()]
         self.pending_transactions = []
         self.difficulty = 5
@@ -42,11 +44,53 @@ class Blockchain():
         """
 
         for node in nodes:
-            self.peers.add(node)
-            try: #Register as a node
-                requests.post("http://" + node + "/register", self.public_ip + ":8222", timeout=4)
+
+            try:
+                ver = requests.get("http://" + node + "/version", timeout=4).text
             except Exception:
-                pass
+                continue
+
+            if ver == self.VER:
+                self.peers.add(node)
+                try: #Register as a node
+                    requests.post("http://" + node + "/register", self.public_ip + ":8222", timeout=4)
+                except Exception:
+                    pass
+            
+            else:
+                try:
+                    release, feature, patch = ver.split(".")
+                    own_release, own_feature, own_patch = self.VER.split(".")
+                except Exception:
+                    continue
+
+
+                if release > own_release:
+                    update = True
+                elif feature > own_feature:
+                    update = True
+                elif patch > own_patch:
+                    update = True
+                else:
+                    update = False
+                
+                if len(self.peers) == 0:
+
+                    if update:
+                        print("[ERROR] You are not on the latest version of PuffinCoin. Visit https://github.com/PuffinDev/PuffinCoin to update. IMPORTANT: save the wallet.json file.")
+                        time.sleep(500)
+                        exit()
+                    else:
+                        print("[ERROR] Seed node is using an outdated version of PuffinCoin.")
+                        time.sleep(500)
+                        exit()
+
+                else:
+                    if update:
+                        print("[ERROR] Could not add node, please update to the latest version of PuffinCoin")
+                    else:
+                        print("[ERROR] Node is using outdated version of PuffinCoin.")
+
 
     def get_public_ip(self):
         return requests.get('https://api.ipify.org').text
