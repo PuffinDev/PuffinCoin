@@ -265,7 +265,7 @@ class Blockchain():
         :param _hash: The hash of the transaction
         :return: index of transaction (int)
         """
-        
+
         i = 0
         for block in self.chain:
             for tx in block.transactions:
@@ -298,6 +298,23 @@ class Blockchain():
                     return bal
                 i += 1
         return bal
+
+    def get_transaction_history(self, wallet):
+        """
+        Returns all transactions to or from a wallet
+
+        :param wallet: The wallet address
+        :return: Transactions (list)
+        """
+        
+        transactions = []
+        for block in self.chain:
+            for transaction in block.transactions:
+                if transaction.sender == wallet or transaction.reciever == wallet:
+                    transactions.append(transaction)
+        
+        return transactions
+
 
 
     def generate_keys(self):
