@@ -44,7 +44,7 @@ class Blockchain():
         for node in nodes:
             self.peers.add(node)
             try: #Register as a node
-                requests.post("http://" + node + "/register", self.public_ip + ":8222")
+                requests.post("http://" + node + "/register", self.public_ip + ":8222", timeout=4)
             except Exception:
                 pass
 
@@ -74,9 +74,11 @@ class Blockchain():
 
         #Get new peers
         new_peers = []
-        for node in self.peers:
+
+        peers = self.peers
+        for node in peers:
             try:
-                response = requests.get(f'http://{node}/peers')
+                response = requests.get(f'http://{node}/peers', timeout=4)
             except:
                 continue
 
@@ -95,7 +97,7 @@ class Blockchain():
             own_chain_length = len(self.chain)
 
             try:
-                response = requests.get(f'http://{node}/chain')
+                response = requests.get(f'http://{node}/chain', timeout=4)
             except:
                 continue
 
@@ -109,7 +111,7 @@ class Blockchain():
 
             #Recieve pending transactions
             try:
-                response = requests.get(f'http://{node}/transactions')
+                response = requests.get(f'http://{node}/transactions', timeout=4)
             except:
                 continue
         
