@@ -23,12 +23,24 @@ try:
     shutil.rmtree("temp/.git")
 except:
     pass
-
+try:
+    os.remove("temp/blockchain.json")
+except:
+    pass
+try:
+    os.remove("temp/wallet.json")
+except:
+    pass
+try:
+    os.remove("temp/update.py")
+except:
+    pass
 
 file_names = os.listdir("temp")
 
 for f in file_names: #Coppy files into main dir
     if not f == "puffincoin":
+        print("COPPYING: " + f)
         shutil.copy(os.path.join("temp", f), cwd)
     
 file_names_2 = os.listdir("temp/puffincoin")
