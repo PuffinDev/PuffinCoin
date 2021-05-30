@@ -19,22 +19,22 @@ cwd = os.getcwd() #Get working directory
 
 os.system("git clone https://github.com/PuffinDev/PuffinCoin temp") #Clone repo into temp
 
-try:
-    shutil.rmtree("temp/.git")
-except:
-    pass
-try:
-    os.remove("temp/blockchain.json")
-except:
-    pass
-try:
-    os.remove("temp/wallet.json")
-except:
-    pass
-try:
-    os.remove("temp/update.py")
-except:
-    pass
+try: shutil.rmtree("temp/.git")
+except: pass
+
+try: os.remove("temp/update.py")
+except: pass
+
+if not os.stat("blockchain.json").st_size == 0:
+    try:
+        os.remove("temp/blockchain.json")
+    except:
+        pass
+if not os.stat("wallet.json").st_size == 0:
+    try:
+        os.remove("temp/wallet.json")
+    except:
+        pass
 
 file_names = os.listdir("temp")
 

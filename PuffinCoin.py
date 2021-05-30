@@ -80,8 +80,8 @@ except: #If there is no wallet, generate new one
 
   You MUST store the wallet.json file somewere else
   on your computer or you may loose your wallet!
-  When you download a new version of PuffinCoin,
-  just drag over the file to restore your wallet.                                                                           
+  If you loose your wallet, just drag over the 
+  file to restore your it.                                                                           
 
     """)
 
