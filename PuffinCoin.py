@@ -42,8 +42,6 @@ blockchain = Blockchain()
 f = open("config.json", "r")
 config = json.load(f)
 
-print("[INFO] Adding seed node(s)...")
-blockchain.add_nodes(config["seed_nodes"]) #Add seed nodes
 
 #Load saved blockchain
 try:
@@ -61,6 +59,9 @@ Thread(target=save_blockchain, args=(blockchain,)).start()
 
 log = logging.getLogger('werkzeug') #Disable logging
 log.disabled = True
+
+print("[INFO] Adding seed node(s)...")
+blockchain.add_nodes(config["seed_nodes"]) #Add seed nodes
 
 print('\n')
 
