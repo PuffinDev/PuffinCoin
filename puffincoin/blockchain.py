@@ -13,11 +13,11 @@ import nacl.signing
 
 class Blockchain():
     def __init__(self):
-        self.VER = "0.4.0"
+        self.VER = "0.5.0"
 
         self.chain = [self.add_genesis_block()]
         self.pending_transactions = []
-        self.difficulty = 5
+        self.difficulty = 6
         self.miner_reward = 5
         self.block_size = 10
         self.peers = set([])
