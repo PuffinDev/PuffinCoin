@@ -13,7 +13,7 @@ import nacl.signing
 
 class Blockchain():
     def __init__(self):
-        self.VER = "0.3.3"
+        self.VER = "0.4.0"
 
         self.chain = [self.add_genesis_block()]
         self.pending_transactions = []
@@ -40,8 +40,10 @@ class Blockchain():
         Appends new nodes to self.peers
 
         :param nodes: Addresses of the nodes to add (list)
-        :return: None
+        :return: True if sucessfully added over 1 node
         """
+
+        connected_nodes_amt = 0
 
         for node in nodes:
             if self.public_ip in node or node in self.peers:
@@ -51,15 +53,16 @@ class Blockchain():
             try:
                 ver = requests.get("http://" + node + "/version", timeout=4).text
             except Exception:
-                print("[NODE ERROR] Could not recive version from: " + "http://" + node + "/version")
+                print("[INFO] Could not recive version from: " + "http://" + node + "/version")
                 continue
 
             if ver == self.VER:
                 self.peers.add(node)
                 try: #Register as a node
                     requests.post("http://" + node + "/register", self.public_ip + ":8222", timeout=4)
+                    connected_nodes_amt += 1
                 except Exception:
-                    print("[NODE ERROR] Could register at: " + "http://" + node + "/register")
+                    print("[INFO] Could register at: " + "http://" + node + "/register")
                     continue
             
             else:
@@ -67,7 +70,7 @@ class Blockchain():
                     release, feature, patch = ver.split(".")
                     own_release, own_feature, own_patch = self.VER.split(".")
                 except Exception:
-                    print("[NODE ERROR] Could not parse version: " + ver)
+                    print("[INFO] Could not parse version: " + ver)
                     continue
 
 
@@ -83,19 +86,24 @@ class Blockchain():
                 if len(self.peers) == 0:
 
                     if update:
-                        print("[NODE ERROR] You are not on the latest version of PuffinCoin. Visit https://github.com/PuffinDev/PuffinCoin to update. IMPORTANT: save the wallet.json file.")
+                        print("[INFO] You are not on the latest version of PuffinCoin. Visit https://github.com/PuffinDev/PuffinCoin to update. IMPORTANT: save the wallet.json file.")
                         time.sleep(500)
                         exit()
                     else:
-                        print("[NODE ERROR] Seed node is using an outdated version of PuffinCoin.")
+                        print("[INFO] Seed node is using an outdated version of PuffinCoin.")
                         time.sleep(500)
                         exit()
 
                 else:
                     if update:
-                        print("[NODE ERROR] Could not add node, please update to the latest version of PuffinCoin")
+                        print("[INFO] Could not add node, please update to the latest version of PuffinCoin")
                     else:
-                        print("[NODE ERROR] Node is using outdated version of PuffinCoin.")
+                        print("[INFO] Node is using outdated version of PuffinCoin.")
+
+        if connected_nodes_amt > 0:
+            return True
+        else:
+            return False
 
 
     def get_public_ip(self):

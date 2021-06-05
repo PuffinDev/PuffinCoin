@@ -59,9 +59,18 @@ Thread(target=save_blockchain, args=(blockchain,)).start()
 
 log = logging.getLogger('werkzeug') #Disable logging
 log.disabled = True
+time.sleep(0.4)
 
 print("[INFO] Adding seed node(s)...")
-blockchain.add_nodes(config["seed_nodes"]) #Add seed nodes
+
+result = blockchain.add_nodes(config["seed_nodes"]) #Add seed nodes
+
+if not result:
+    print("\n[ERROR] Could not connect to any seed nodes.")
+    print("If you continue, changes made to the blockchain may not be saved.")
+    opt = input("Do you wish to continue? y/n :")
+    if opt.lower() == 'n':
+        exit()
 
 print('\n')
 
