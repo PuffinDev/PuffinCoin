@@ -13,7 +13,7 @@ import nacl.signing
 
 class Blockchain():
     def __init__(self):
-        self.VER = "0.5.1"
+        self.VER = "0.5.2"
 
         self.chain = [self.add_genesis_block()]
         self.pending_transactions = []
@@ -21,7 +21,13 @@ class Blockchain():
         self.miner_reward = 5
         self.block_size = 10
         self.peers = set([])
-        self.public_ip = self.get_public_ip()
+        
+        ip = self.get_public_ip()
+        if ip: self.public_ip = ip
+        else:
+            print("\n[ERROR] Could not get public ip")
+            input()
+            exit()
 
     def __str__(self):
         return_str = ''
@@ -107,7 +113,17 @@ class Blockchain():
 
 
     def get_public_ip(self):
-        return requests.get('https://api.ipify.org').text
+        """
+        Returns the external ip of machine.
+
+        :return: ip address
+        """
+
+        response = requests.get('https://api.ipify.org', timeout=4)
+        if response.status_code == 200:
+            return response.text
+        else:
+            return False
 
     def remove_nodes(self, nodes):
         """
