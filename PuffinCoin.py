@@ -7,6 +7,7 @@ import socket
 from puffincoin.node import Node
 from puffincoin.blockchain import Blockchain
 from puffincoin.portforward import forwardPort, get_my_ip
+from puffincoin.utils import Utils
 
 inputString = ""
 
@@ -132,6 +133,7 @@ e) Exit the Program
 4| Display connected peers
 5| Add a peer
 6| PuffinCoin version
+7| Test hashrate
 
 >> """)
 
@@ -185,6 +187,21 @@ e) Exit the Program
 
         elif opt.lower() == '6': #Version
             print(blockchain.VER)
+
+        elif opt.lower() == '7': #Test hashrate
+            print("Testing...")
+
+            rates = []
+            for i in range(1,10):
+                rates.append(Utils.test_hashrate())
+            rate = sum(rates) / len(rates)
+
+            print("Your hashrate: ~" + str(round(rate / 1000000, 4)) + " GH/s")
+            hashes_for_pfc = 17000000
+            
+            block_time = hashes_for_pfc / rate
+            print("Block time: ~" + str(round(block_time, 4)) + "s")
+
         
         elif opt.lower() == 'e':
             exit = True
